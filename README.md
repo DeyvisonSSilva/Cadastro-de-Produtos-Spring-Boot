@@ -2,8 +2,10 @@
 
 # 📦 Cadastro de Produtos – Spring Boot
 
-Este é um projeto simples desenvolvido com **Spring Boot** que implementa uma API REST para cadastro e gerenciamento de produtos.
-Inicialmente os dados eram armazenados em memória, porém o projeto foi evoluído para utilizar **JPA e Hibernate**, permitindo persistência dos dados em banco de dados relacional.
+Este é um projeto simples desenvolvido com **Spring Boot** que implementa uma API REST para cadastro e gerenciamento de produtos.  
+Inicialmente os dados eram armazenados em memória, porém o projeto foi evoluído para utilizar **JPA e Hibernate**, permitindo persistência dos dados em banco de dados relacional.  
+
+Além disso, o projeto passou a seguir **boas práticas de desenvolvimento** com separação de camadas, uso de **DTOs**, **Service** e princípios **SOLID**, tornando o código mais modular, testável e fácil de manter.
 
 O objetivo do projeto é servir como exemplo didático para estudos de **Spring Boot**, **REST APIs**, **CRUD**, **JPA** e **Hibernate**.
 
@@ -19,6 +21,7 @@ O objetivo do projeto é servir como exemplo didático para estudos de **Spring 
 * Maven
 * H2 Database (banco em memória para desenvolvimento)
 * API REST
+* Jakarta Bean Validation (`@Valid`, `@NotBlank`, `@Positive`)
 
 ---
 
@@ -28,12 +31,23 @@ O objetivo do projeto é servir como exemplo didático para estudos de **Spring 
 com.example.demo
 ├── CadastroProdutoApplication.java
 ├── controller
-│   └── CadastroProdutoController.java
+│ └── CadastroProdutoController.java
+├── dto
+│ ├── request
+│ │ └── ProdutoRequestDTO.java
+│ └── response
+│ └── ProdutoResponseDTO.java
 ├── model
-│   └── Produto.java
-└── repository
-    └── ProdutoRepository.java
+│ └── Produto.java
+├── repository
+│ └── ProdutoRepository.java
+└── service
+├── ProdutoService.java
+└── ProdutoServiceImpl.java
 ```
+
+---
+
 
 ---
 
@@ -42,18 +56,37 @@ com.example.demo
 * ✅ Verificar se a API está rodando
 * ✅ Listar produtos
 * ✅ Buscar produto por ID
-* ✅ Cadastrar novo produto
+* ✅ Cadastrar novo produto com validação
 * ✅ Remover produto por ID
 * ✅ Persistência de dados com JPA e Hibernate
+* ✅ Arquitetura modular usando **DTOs**, **Service** e princípios **SOLID**
 
 ℹ️ Os dados agora são persistidos em banco de dados (H2). Ao reiniciar a aplicação, os dados podem ser mantidos ou recriados de acordo com a configuração do JPA.
 
 ---
 
-## 🗄️ Persistência com JPA e Hibernate
+## 🛠️ Mudanças Realizadas
 
-O projeto utiliza **Spring Data JPA** com **Hibernate** como provedor de persistência.
+### 1. Separação de Camadas e Princípios SOLID
+- Implementação de **Service layer** (`ProdutoService` e `ProdutoServiceImpl`) para separar regras de negócio da camada de controller.
+- Controller (`CadastroProdutoController`) responsável apenas por receber requisições e devolver respostas.
+- Repository (`ProdutoRepository`) encapsula acesso ao banco de dados.
+- Segue o princípio **Single Responsibility Principle** (cada classe com responsabilidade única).
 
+### 2. Uso de DTOs
+- `ProdutoRequestDTO` → dados recebidos pela API
+- `ProdutoResponseDTO` → dados retornados pela API
+- Conversão de entidade `Produto` para DTO no service (`toResponseDTO`) aumenta segurança e flexibilidade.
+
+### 3. Validação de Dados
+- Uso de **Jakarta Bean Validation** no DTO:
+```java
+@NotBlank
+private String nome;
+
+@Positive
+private double preco;
+```
 ### Entidade Produto
 
 A classe `Produto` é mapeada como uma entidade JPA:
@@ -114,6 +147,7 @@ http://localhost:8080/h2-console
 2. Acesse a pasta do projeto
 
    ```bash
+   cd Cadastro-de-Produtos-Spring-Boot
    cd demo
    ```
 
@@ -128,18 +162,6 @@ http://localhost:8080/h2-console
 ---
 
 ## 🌐 Endpoints da API
-
-### 🔹 Teste da API
-
-`GET /produtos/hello`
-
-Resposta:
-
-```
-API de Produtos rodando com Spring Boot
-```
-
----
 
 ### 🔹 Listar todos os produtos
 
@@ -192,5 +214,5 @@ Este projeto faz parte do **Bootcamp Deloitte – Java 2026**, com foco em:
 * Construção de APIs REST
 * Boas práticas com Spring Boot
 * Persistência de dados com JPA e Hibernate
+* Uso de DTOs e Service seguindo princípios SOLID
 * Evolução de um CRUD simples para uma aplicação mais próxima do mundo real
-
