@@ -1,29 +1,20 @@
-package com.example.demo.model;
+package com.example.demo.dto.response;
 
-import jakarta.persistence.*;
+public class ProdutoResponseDTO {
 
-@Entity
-@Table(name = "produtos")
-public class Produto {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false)
     private String nome;
-
     private double preco;
 
-    public Produto() {}
+    public ProdutoResponseDTO() {}
 
-    public Produto(Long id, String nome, double preco) {
+    public ProdutoResponseDTO(Long id, String nome, double preco) {
         this.id = id;
         this.nome = nome;
         this.preco = preco;
     }
 
-    //Getters e Setters
+    // Getters e Setters
     public Long getId() {return id;}
     public void setId(Long id) {this.id = id;}
 
