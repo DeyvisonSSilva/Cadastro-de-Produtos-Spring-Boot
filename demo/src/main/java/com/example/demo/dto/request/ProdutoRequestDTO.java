@@ -3,6 +3,8 @@ package com.example.demo.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
+//Evita expor a entidade JPA e Controla o que entra da API
+
 public class ProdutoRequestDTO {
 
     @NotBlank
