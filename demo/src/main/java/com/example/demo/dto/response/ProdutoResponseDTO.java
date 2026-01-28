@@ -1,5 +1,7 @@
 package com.example.demo.dto.response;
 
+//Evita expor a entidade JPA e Controla o que sai da API
+
 public class ProdutoResponseDTO {
 
     private Long id;
