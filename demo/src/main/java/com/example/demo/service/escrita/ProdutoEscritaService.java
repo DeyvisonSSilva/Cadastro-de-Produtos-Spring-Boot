@@ -10,6 +10,6 @@ import com.example.demo.dto.response.ProdutoResponseDTO;
 
 public interface ProdutoEscritaService {
     ProdutoResponseDTO salvar(ProdutoRequestDTO dto);
+    ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO dto);
     void remover(Long id);
 }
-

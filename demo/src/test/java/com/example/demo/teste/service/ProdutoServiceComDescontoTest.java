@@ -33,21 +33,18 @@ class ProdutoServiceComDescontoTest {
         ProdutoRequestDTO dto = new ProdutoRequestDTO("TV", 2000);
 
         Produto produto = new Produto();
+        produto.setId(1L);
+        produto.setNome("TV");
         produto.setPreco(2000);
 
-        Produto produtoComDesconto = new Produto();
-        produtoComDesconto.setPreco(1800);
-
-        ProdutoResponseDTO responseDTO =
-                new ProdutoResponseDTO(1L, "TV", 1800);
+        ProdutoResponseDTO responseDTO = new ProdutoResponseDTO(1L, "TV", 1800);
 
         when(mapper.toEntity(dto)).thenReturn(produto);
-        when(repository.save(any())).thenReturn(produtoComDesconto);
-        when(mapper.toDTO(produtoComDesconto)).thenReturn(responseDTO);
+        when(repository.save(produto)).thenReturn(produto);
+        when(mapper.toDTOComDesconto(produto, 0.1)).thenReturn(responseDTO);
 
         ProdutoResponseDTO response = service.salvar(dto);
 
         assertEquals(1800, response.getPreco());
     }
 }
-

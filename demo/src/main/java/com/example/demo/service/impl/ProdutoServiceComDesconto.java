@@ -8,7 +8,6 @@ import com.example.demo.model.Produto;
 import com.example.demo.repository.ProdutoRepository;
 import com.example.demo.service.escrita.ProdutoEscritaService;
 import com.example.demo.service.leitura.ProdutoLeituraService;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +54,19 @@ public class ProdutoServiceComDesconto implements ProdutoLeituraService, Produto
         Produto produto = repository.findById(id)
                 .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
         return mapper.toDTOComDesconto(produto, DESCONTO);
+    }
+
+    @Override
+    public ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO dto) {
+
+        Produto produto = repository.findById(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
+
+        produto.setNome(dto.getNome());
+        produto.setPreco(dto.getPreco());
+
+        Produto atualizado = repository.save(produto);
+        return mapper.toDTOComDesconto(atualizado, DESCONTO);
     }
 
     @Override
