@@ -72,7 +72,7 @@ com.example.demo
 * ✅ Persistência de dados com JPA e Hibernate
 * ✅ Arquitetura modular usando **DTOs**, **Service** e princípios **SOLID**
 
-ℹ️ Os dados agora são persistidos em banco de dados (H2). Ao reiniciar a aplicação, os dados podem ser mantidos ou recriados de acordo com a configuração do JPA.
+ℹ️ Os dados são persistidos em banco de dados (H2). Ao reiniciar a aplicação, os dados podem ser mantidos ou recriados de acordo com a configuração do JPA.
 
 ---
 
@@ -230,17 +230,6 @@ Acesse o console do H2 em:
 ```
 http://localhost:8080/h2-console
 ```
-
-### ☁️ Arquitetura de Nuvem (Microsoft Azure)
-
-O projeto foi migrado de um ambiente estritamente local para a Azure, garantindo persistência robusta e disponibilidade.
-
-* App Service: Hospeda a aplicação Spring Boot.
-
-* Azure SQL Database: Substitui o H2 para armazenamento persistente e escalável.
-
-* Variáveis de Ambiente: Credenciais sensíveis e strings de conexão são gerenciadas pelas configurações do Azure App Service, mantendo o código seguro e livre de dados sensíveis (Hardcoded).
-
 ---
 
 ## ▶️ Como Executar o Projeto ( De Forma Local )
@@ -261,7 +250,7 @@ O projeto foi migrado de um ambiente estritamente local para a Azure, garantindo
 3. Execute a aplicação
 
    ```bash
-   ./mvnw spring-boot:run
+   ./mvnw spring-boot:run ou Run na classe CadastroProdutoApplication.java
    ```
 
    ou execute pelo método `main` da classe `CadastroProdutoApplication`.
@@ -311,6 +300,7 @@ Os endpoints podem ser testados utilizando:
 * Insomnia
 * cURL
 * Navegador (para requisições GET)
+* Swagger
 
 ---
 
@@ -318,7 +308,7 @@ Os endpoints podem ser testados utilizando:
 
 O projeto está publicado e operacional na infraestrutura da Microsoft Azure. Você pode interagir com a API em tempo real sem precisar configurar um ambiente local.
 
-## 🚀 Testando via Swagger (Interface Interativa)
+## 🚀 Testando via Swagger
 
 A forma mais fácil de testar todos os métodos (GET, POST, PUT, DELETE) é através da interface do Swagger.
    
@@ -336,7 +326,7 @@ A forma mais fácil de testar todos os métodos (GET, POST, PUT, DELETE) é atra
 
    5. Confira o Server Response (Código 201 para sucesso na criação).
 
-## 🔗 Verificação Direta via URL (Endpoints GET)
+## 🔗 Verificação Direta via URL (Interface interativa Deloitte API Interface)
 
 Você também pode checar a persistência dos dados diretamente no navegador acessando a URL base da aplicação: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net
    
