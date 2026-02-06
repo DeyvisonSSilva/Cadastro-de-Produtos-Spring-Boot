@@ -13,7 +13,7 @@ O objetivo do projeto é servir como exemplo didático para estudos de **Spring 
 
 ## 🚀 Tecnologias Utilizadas
 
-* Java 17+
+* Java 21
 * Spring Boot
 * Spring Web
 * Spring Data JPA
@@ -29,26 +29,37 @@ O objetivo do projeto é servir como exemplo didático para estudos de **Spring 
 
 ```
 com.example.demo
-├── CadastroProdutoApplication.java
+├── config
+│   ├── CorsConfig.java          <-- Configuração de segurança de acesso
+│   └── OpenApiConfig.java       <-- Configuração do Swagger/Doc
 ├── controller
-│ └── CadastroProdutoController.java
+│   └── ProdutoController.java
 ├── dto
-│ ├── request
-│ │ └── ProdutoRequestDTO.java
-│ └── response
-│ └── ProdutoResponseDTO.java
+│   ├── request
+│   │   └── ProdutoRequestDTO.java
+│   └── response
+│       └── ProdutoResponseDTO.java
+├── exception
+│   ├── handler
+│   │   ├── ApiErrorResponse.java
+│   │   └── GlobalExceptionHandler.java
+│   └── PrecoInvalidoException.java
+│   └── ProdutoNaoEncontradoException.java
+├── mapper
+│   └── ProdutoMapper.java
 ├── model
-│ └── Produto.java
+│   └── Produto.java
 ├── repository
-│ └── ProdutoRepository.java
+│   └── ProdutoRepository.java
 └── service
-├── ProdutoService.java
-└── ProdutoServiceImpl.java
+    ├── escrita
+        └──  ProdutoEscritaService.java
+    └── leitura
+        └──  ProdutoLeituraService.java
+    └── impl
+        └── ProdutoServicePadrao.java
+        └── ProdutoServiceComDesconto.java
 ```
-
----
-
-
 ---
 
 ## 📌 Funcionalidades
@@ -65,21 +76,55 @@ com.example.demo
 
 ---
 
-## 🛠️ Mudanças Realizadas
+## Padrões de Projeto e Arquitetura Avançada
 
-### 1. Separação de Camadas e Princípios SOLID
-- Implementação de **Service layer** (`ProdutoService` e `ProdutoServiceImpl`) para separar regras de negócio da camada de controller.
-- Controller (`CadastroProdutoController`) responsável apenas por receber requisições e devolver respostas.
-- Repository (`ProdutoRepository`) encapsula acesso ao banco de dados.
-- Segue o princípio **Single Responsibility Principle** (cada classe com responsabilidade única).
+### 1. Uso de Data Transfer Objects (DTOs)
 
-### 2. Uso de DTOs
-- `ProdutoRequestDTO` → dados recebidos pela API
-- `ProdutoResponseDTO` → dados retornados pela API
-- Conversão de entidade `Produto` para DTO no service (`toResponseDTO`) aumenta segurança e flexibilidade.
+Para garantir a segurança e o encapsulamento, a API utiliza DTOs para separar a camada de persistência da camada de exibição.
 
-### 3. Validação de Dados
-- Uso de **Jakarta Bean Validation** no DTO:
+   - `ProdutoRequestDTO`: Controla e valida os dados de entrada usando Bean Validation (`@NotBlank`, `@Positive`). O ID nunca é enviado pelo cliente, garantindo que o banco controle a identidade.
+
+   - `ProdutoResponseDTO`: Define exatamente o que o cliente verá. Isso impede a exposição de campos sensíveis ou internos da entidade JPA.
+
+---
+
+### 2. Services: Segregação e Flexibilidade (SOLID)
+
+A camada de serviço foi dividida seguindo os princípios de design orientado a objetos:
+
+   - ISP (Interface Segregation Principle): Criamos interfaces distintas para Leitura `(ProdutoLeituraService)` e Escrita `(ProdutoEscritaService)`. Isso permite que componentes que só precisam ler dados não tenham acesso aos métodos de exclusão ou alteração.
+
+   - LSP (Liskov Substitution Principle): O Controller depende das interfaces, permitindo que qualquer implementação (Padrão ou Com Desconto) seja injetada sem quebrar o sistema.
+
+   - OCP (Open-Closed Principle): O sistema está aberto para extensões, mas fechado para modificações. Quer uma regra nova? Basta criar uma nova classe de Service sem tocar na anterior.
+
+## 🛠️ Lógica de Negócio e Exceções Customizadas
+
+Diferente de um CRUD simples, a camada de serviço orquestra regras complexas e lançamentos de exceções:
+
+   - Validação de Preço: Lança `PrecoInvalidoException` se o valor for menor ou igual a zero.
+
+   - Verificação de Existência: Antes de remover ou atualizar, o sistema verifica a presença do ID e lança `ProdutoNaoEncontradoException`.
+
+   - Orquestração de Mapeamento: O Service utiliza o `ProdutoMapper` para converter dados de forma limpa, mantendo o Repository focado apenas em persistência.
+
+---
+
+### 3. Implementações Dinâmicas com Spring Profiles
+
+O projeto utiliza Profiles do Spring para alternar o comportamento da regra de negócio sem alterar o código:
+
+```
+Implementação                      │                        Profile                             │                     Comportamento
+ProdutoServicePadrao               │                        padrao                              │  Opera com os preços originais e validações rigorosas.
+ProdutoServiceComDescontodesconto  │Aplica automaticamente 10% de desconto na visualização (DTO)│        mantendo o preço original no banco de dados.
+```
+
+---
+
+### 4. Validação de Dados
+- `GlobalExceptionHandler` → Centralização do tratamento de exceções (como ProdutoNaoEncontradoException), retornando respostas HTTP padronizadas.
+- Uso de **Jakarta Bean Validation** para garantir a integridade dos dados antes de chegarem ao banco:
 ```java
 @NotBlank
 private String nome;
@@ -87,30 +132,82 @@ private String nome;
 @Positive
 private double preco;
 ```
-### Entidade Produto
 
-A classe `Produto` é mapeada como uma entidade JPA:
+---
 
-* `@Entity`
-* `@Id`
-* `@GeneratedValue`
+## 🏗️ O Model / Entidade Produto
 
+Esta classe representa a Entidade. Ela é o espelho de uma tabela no seu banco de dados. Graças ao Jakarta Persistence (JPA), o Java consegue conversar com o banco sem você precisar escrever uma linha de SQL.
+
+* `@Entity` Diz ao Spring/Hibernate que esta classe é uma tabela do banco de dados.
+  
+* `@Table(name = "produtos")`: Define explicitamente o nome da tabela. Se não fosse usado, o Hibernate criaria uma tabela chamada "Produto".
+  
+* `@Id` e `@GeneratedValue` Define a chave primária. O `IDENTITY` delega ao banco de dados a tarefa de auto-incrementar o ID (1, 2, 3...).
+  
+* `@Column(nullable = false)`: Uma restrição de banco (Constraint). Garante que ninguém consiga salvar um produto sem nome diretamente na tabela.
+  
 Isso permite que os objetos Java sejam automaticamente mapeados para tabelas no banco de dados.
 
-### Repositório
+---
 
-Foi criado o `ProdutoRepository`, que estende `JpaRepository`, fornecendo automaticamente métodos como:
+## 🔄 O Mapper
 
-* `findAll()`
-* `findById()`
-* `save()`
-* `deleteById()`
+O `ProdutoMapper` é um componente `(@Component)` estratégico que isola a estrutura do banco de dados da estrutura da API.
 
-Sem a necessidade de implementação manual.
+- Desacoplamento: Permite que a entidade `Produto` mude sem quebrar o contrato da API com o front-end.
+- Transformação de Dados:
+   
+   - `toEntity`: Converte o DTO de entrada em uma entidade pronta para persistência.
+
+   - `toDTO`: Converte a entidade persistida em uma resposta limpa.
+   
+   - Lógica de Exibição: O método `toDTOComDesconto` demonstra como aplicar regras de visualização (como cálculos de preço) sem alterar o valor original armazenado no banco de dados, garantindo a integridade financeira da aplicação.
+
+---
+
+## 🗄️ Camada de Persistência (Repository)
+
+A interface `ProdutoRepository` é o componente responsável por mediar a comunicação entre a lógica de negócio e o banco de dados (seja o H2 local ou o Azure SQL Database).
+
+Ao estender `JpaRepository<Produto, Long>`, o Spring Data JPA gera automaticamente todas as implementações SQL necessárias em tempo de execução. Isso significa que não precisamos escrever consultas manuais para operações básicas.
+
+Benefícios no Projeto:
+   - **Abstração Total**: Não há necessidade de escrever código JDBC ou SQL complexo.
+   - **Métodos Prontos**: Ganhamos acesso imediato a métodos como:
+     
+      - save(): Cria ou atualiza um produto.
+        
+      - findAll(): Retorna a lista completa de produtos.
+        
+      - findById(): Busca um registro pela chave primária.
+        
+      - deleteById(): Remove o registro do banco.
+        
+   - **Portabilidade**: Graças ao uso do Repository com JPA, o código que funciona no H2 local é o mesmo que funciona no Azure SQL, mudando apenas a configuração do Dialeto no application.properties.
+
+---
+
+## 📖 Documentação Interativa (Swagger/OpenAPI)
+
+A API conta com documentação automatizada via Swagger UI, facilitando o teste dos endpoints e a integração com outros sistemas.
+
+* Acesso Local: http://localhost:8080/swagger-ui.html
+
+* Configuração: A classe `OpenApiConfig` define o título, versão e descrição da API, utilizando a especificação OpenAPI 3.0.
+
+Com o Swagger, é possível:
+   1. Visualizar todos os endpoints disponíveis.
+
+   2. Verificar os modelos de dados (Schemas) de entrada e saída.
+
+   3. Executar requisições `(Try it out)` diretamente pelo navegador.
 
 ---
 
 ## ⚙️ Configuração do Banco de Dados
+
+### Uso do Banco Local(H2)
 
 Exemplo de configuração no `application.properties`:
 
@@ -134,9 +231,19 @@ Acesse o console do H2 em:
 http://localhost:8080/h2-console
 ```
 
+### ☁️ Arquitetura de Nuvem (Microsoft Azure)
+
+O projeto foi migrado de um ambiente estritamente local para a Azure, garantindo persistência robusta e disponibilidade.
+
+* App Service: Hospeda a aplicação Spring Boot.
+
+* Azure SQL Database: Substitui o H2 para armazenamento persistente e escalável.
+
+* Variáveis de Ambiente: Credenciais sensíveis e strings de conexão são gerenciadas pelas configurações do Azure App Service, mantendo o código seguro e livre de dados sensíveis (Hardcoded).
+
 ---
 
-## ▶️ Como Executar o Projeto
+## ▶️ Como Executar o Projeto ( De Forma Local )
 
 1. Clone o repositório
 
@@ -196,7 +303,7 @@ Body (JSON):
 
 ---
 
-## 🧪 Testes
+### 🧪 Testes
 
 Os endpoints podem ser testados utilizando:
 
@@ -204,6 +311,38 @@ Os endpoints podem ser testados utilizando:
 * Insomnia
 * cURL
 * Navegador (para requisições GET)
+
+---
+
+## ▶️ Acesso à Aplicação em Nuvem
+
+O projeto está publicado e operacional na infraestrutura da Microsoft Azure. Você pode interagir com a API em tempo real sem precisar configurar um ambiente local.
+
+## 🚀 Testando via Swagger (Interface Interativa)
+
+A forma mais fácil de testar todos os métodos (GET, POST, PUT, DELETE) é através da interface do Swagger.
+   
+   - URL do Swagger: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net/swagger-ui/index.html
+
+## Passo a passo para testar:
+   
+   1. Acesse o link acima.
+
+   2. Clique em um endpoint `(ex: POST /produtos)`.
+
+   3. Clique no botão "Try it out".
+
+   4. Preencha o JSON no corpo da requisição e clique em "Execute".
+
+   5. Confira o Server Response (Código 201 para sucesso na criação).
+
+## 🔗 Verificação Direta via URL (Endpoints GET)
+
+Você também pode checar a persistência dos dados diretamente no navegador acessando a URL base da aplicação:
+
+   - Listar todos os produtos: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net/produtos
+
+   - Buscar produto por ID: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net/produtos/4
 
 ---
 
