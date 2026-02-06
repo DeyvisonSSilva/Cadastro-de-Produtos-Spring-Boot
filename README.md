@@ -338,12 +338,8 @@ A forma mais fácil de testar todos os métodos (GET, POST, PUT, DELETE) é atra
 
 ## 🔗 Verificação Direta via URL (Endpoints GET)
 
-Você também pode checar a persistência dos dados diretamente no navegador acessando a URL base da aplicação:
-
-   - Listar todos os produtos: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net/produtos
-
-   - Buscar produto por ID: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net/produtos/4
-
+Você também pode checar a persistência dos dados diretamente no navegador acessando a URL base da aplicação: https://bootcampdeloittejava-a9feebbkgwbrfsbm.brazilsouth-01.azurewebsites.net
+   
 ---
 
 ## 📚 Objetivo Educacional
