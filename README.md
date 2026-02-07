@@ -250,7 +250,7 @@ http://localhost:8080/h2-console
 3. Execute a aplicação
 
    ```bash
-   ./mvnw spring-boot:run ou Run na classe CadastroProdutoApplication.java
+   ./mvnw spring-boot:run
    ```
 
    ou execute pelo método `main` da classe `CadastroProdutoApplication`.
